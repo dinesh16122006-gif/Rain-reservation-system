@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Train Reservation System</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      text-align: center;
+    }
+    h1 {
+      color: #333;
+    }
+    .seat {
+      display: inline-block;
+      width: 80px;
+      height: 60px;
+      margin: 8px;
+      background: #4CAF50;
+      color: white;
+      font-weight: bold;
+      border-radius: 10px;
+      line-height: 60px;
+      cursor: pointer;
+    }
+    .booked {
+      background: #e74c3c;
+    }
+    .controls {
+      margin: 20px;
+    }
+    input, button {
+      padding: 8px;
+      margin: 5px;
+      font-size: 14px;
+    }
+    .info {
+      margin-top: 20px;
+      text-align: left;
+      display: inline-block;
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    .info h3 {
+      margin-top: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🚆 Train Reservation System</h1>
+
+  <div class="controls">
+    <input type="number" id="trainNo" placeholder="Train No">
+    <input type="text" id="from" placeholder="From">
+    <input type="text" id="to" placeholder="To"><br>
+    <input type="number" id="seatNo" placeholder="Seat No (1-10)">
+    <input type="text" id="passenger" placeholder="Passenger Name">
+    <input type="number" id="age" placeholder="Age">
+    <button onclick="bookSeat()">Book</button>
+    <button onclick="cancelSeat()">Cancel</button>
+  </div>
+
+  <h3>Click seat to book/cancel directly</h3>
+  <div id="train"></div>
+
+  <div class="info">
+    <h3>Reservation Details</h3>
+    <ul id="details"></ul>
+  </div>
+
+  <script>
+    // Train seats (10 seats demo)
+    let seats = [];
+    for (let i = 1; i <= 10; i++) {
+      seats.push({ 
+        seatNo: i, 
+        booked: false, 
+        passenger: "None",
+        age: 0,
+        trainNo: "",
+        from: "",
+        to: ""
+      });
+    }
+
+    // Render seats
+    function renderSeats() {
+      let trainDiv = document.getElementById("train");
+      trainDiv.innerHTML = "";
+      seats.forEach(seat => {
+        let div = document.createElement("div");
+        div.className = "seat" + (seat.booked ? " booked" : "");
+        div.innerText = seat.seatNo;
+        div.title = seat.booked 
+          ? `Booked by ${seat.passenger}, Age ${seat.age}\nTrain ${seat.trainNo}\n${seat.from} ➝ ${seat.to}`
+          : "Available";
+        div.onclick = () => toggleSeat(seat.seatNo);
+        trainDiv.appendChild(div);
+      });
+      renderDetails();
+    }
+
+    // Render reservation details list
+    function renderDetails() {
+      let details = document.getElementById("details");
+      details.innerHTML = "";
+      seats.forEach(seat => {
+        if (seat.booked) {
+          let li = document.createElement("li");
+          li.innerText = `Seat ${seat.seatNo} | ${seat.passenger} (Age ${seat.age}) | Train ${seat.trainNo} | ${seat.from} ➝ ${seat.to}`;
+          details.appendChild(li);
+        }
+      });
+    }
+
+    // Book seat by number + details
+    function bookSeat() {
+      let seatNo = parseInt(document.getElementById("seatNo").value);
+      let name = document.getElementById("passenger").value.trim();
+      let age = parseInt(document.getElementById("age").value);
+      let trainNo = document.getElementById("trainNo").value.trim();
+      let from = document.getElementById("from").value.trim();
+      let to = document.getElementById("to").value.trim();
+
+      if (!seatNo || seatNo < 1 || seatNo > seats.length) {
+        alert("❌ Invalid seat number!");
+        return;
+      }
+      if (!name || !age || !trainNo || !from || !to) {
+        alert("❌ Fill all details!");
+        return;
+      }
+
+      if (seats[seatNo - 1].booked) {
+        alert(`❌ Seat ${seatNo} already booked by ${seats[seatNo - 1].passenger}`);
+      } else {
+        seats[seatNo - 1].booked = true;
+        seats[seatNo - 1].passenger = name;
+        seats[seatNo - 1].age = age;
+        seats[seatNo - 1].trainNo = trainNo;
+        seats[seatNo - 1].from = from;
+        seats[seatNo - 1].to = to;
+        alert(`✅ Seat ${seatNo} booked for ${name}`);
+        renderSeats();
+      }
+    }
+
+    // Cancel booking
+    function cancelSeat() {
+      let seatNo = parseInt(document.getElementById("seatNo").value);
+      if (!seatNo || seatNo < 1 || seatNo > seats.length) {
+        alert("❌ Invalid seat number!");
+        return;
+      }
+      if (seats[seatNo - 1].booked) {
+        alert(`🟡 Booking cancelled for ${seats[seatNo - 1].passenger} (Seat ${seatNo})`);
+        seats[seatNo - 1].booked = false;
+        seats[seatNo - 1].passenger = "None";
+        seats[seatNo - 1].age = 0;
+        seats[seatNo - 1].trainNo = "";
+        seats[seatNo - 1].from = "";
+        seats[seatNo - 1].to = "";
+        renderSeats();
+      } else {
+        alert(`❌ Seat ${seatNo} is not booked!`);
+      }
+    }
+
+    // Toggle booking by clicking seat
+    function toggleSeat(seatNo) {
+      let seat = seats[seatNo - 1];
+      if (seat.booked) {
+        if (confirm(`Cancel booking for ${seat.passenger} (Seat ${seatNo})?`)) {
+          seat.booked = false;
+          seat.passenger = "None";
+          seat.age = 0;
+          seat.trainNo = "";
+          seat.from = "";
+          seat.to = "";
+        }
+      } else {
+        let name = prompt("Enter passenger name:");
+        let age = prompt("Enter passenger age:");
+        let trainNo = prompt("Enter train number:");
+        let from = prompt("From:");
+        let to = prompt("To:");
+        if (name && age && trainNo && from && to) {
+          seat.booked = true;
+          seat.passenger = name;
+          seat.age = parseInt(age);
+          seat.trainNo = trainNo;
+          seat.from = from;
+          seat.to = to;
+        }
+      }
+      renderSeats();
+    }
+
+    // Initial render
+    renderSeats();
+  </script>
+
+</body>
+</html>
